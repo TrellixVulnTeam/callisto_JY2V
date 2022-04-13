@@ -1,0 +1,16 @@
+[Unit]
+Description=callisto daemon
+
+[Service]
+PIDFile = /var/run/callisto.pid
+User = callisto
+Group = callisto
+WorkingDirectory = /usr/sbin/
+ExecStart = /usr/sbin/callisto
+Type = simple
+TimeoutStopSec = 10
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
