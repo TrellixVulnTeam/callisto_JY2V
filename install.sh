@@ -36,7 +36,7 @@ else
   echo "Configurando serviço daemon."
   sudo cp callisto.service /etc/systemd/system/
   sudo systemctl daemon-reload
-  echo"Copying python script to /usr/local/lib and setting permissions"
+  echo "Copying python script to /usr/local/bin and setting permissions"
   sudo cp callisto.py /usr/local/bin
   sudo chown callisto:callisto /usr/local/bin/callisto.py
   echo "Iniciando serviço daemon"

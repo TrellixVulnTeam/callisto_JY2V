@@ -12,7 +12,7 @@ import subprocess
 
 class Callisto:
     """Class `Callisto` controls the operation of spectrometer in manual mode via command line and tcp connection."""
-    def __init__(self, IP=None, PORT=6789, fits_command="start", ovs_command="overview", stop_command="stop", quit_command="quit", daemon="/etc/systemd/system/callisto.service", executable="/usr/sbin/callisto"):
+    def __init__(self, IP=None, PORT=6789, fits_command="start", ovs_command="overview", stop_command="stop", quit_command="quit", daemon="/etc/systemd/system/callisto.service", executable="/usr/sbin/callisto", cal_unit=None):
         self.IP = IP
         self.PORT = PORT
         self.fits_command = fits_command
@@ -201,3 +201,11 @@ class CalibrationUnit():
         finally:
             self.serial.close()
         return result
+
+def main():
+    cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
+    callisto = Callisto(PORT=6789, cal_unit=cal_unit):
+    callisto.calibrate()
+
+if __name__ == "__main__":
+    main()
