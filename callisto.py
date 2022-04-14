@@ -3,13 +3,18 @@
 Module with definitions for handling callisto and its calibration unit.
 Implement classes for command line and serial port.
 """
+from io import StringIO
 import os
 import sys
 import serial
 import shlex
+import signal
 import socket
 import subprocess
+#----------------------------
+import pandas as pd
 
+VERSION = "Version: ETHZ Arduino_PrototypeV85.ino; 2016-08-17/cm"
 
 class Callisto:
     """Class `Callisto` controls the operation of spectrometer in manual mode via command line and tcp connection."""
@@ -45,11 +50,20 @@ class Callisto:
     def get_PID(self):
         """Determine PID of callisto process running as daemon."""
         try:
-            file = open(self.PIDFile)
-            PID = file.readline()
-            file.close()
-        except FileNotFoundError as err:
-            PID = None
+            command = "ps aux"
+            process_name = "callisto"
+            ps = subprocess.run(shlex.split(command), check=True, capture_output=True)
+            processNames = subprocess.run(shlex.split('grep ' + process_name), input=ps.stdout, capture_output=True)
+            if processNames.stdout.decode():
+                # very roundabout way to get all hits in ps command into a dataframe for proper parsing.
+                df_ps = pd.read_table(StringIO(processNames.stdout.decode()), header=None)[0].str.split(' +', expand=True)
+                # PID is list.
+                PID = df_ps[df_ps[10] == process_name][1].values.tolist()
+            else:
+                PID = []
+
+        except subprocess.CalledProcessError as err:
+            print("Could not retrieve PID information for callisto: {}.".format(err))
         return PID
 
     def connect(self):
@@ -64,19 +78,24 @@ class Callisto:
             print("Caught exception {}".format(err))
         return sock
 
-    def check_daemon(self):
-        """Check if callisto is running as daemon;"""
-        if self.get_PID():
-            # Daemon is already running
-            return self.get_PID()
-        else:
-            return None
+    def stop(self):
+        # Stop daemon
+        self.run_daemon(action="stop")
+        # Check any stray processes.
+        PIDs = self.get_PID()
+        try:
+            #[ os.kill(int(PID), signal.SIGSTOP) for PID in PIDs if PIDs ]
+            subprocess.run(shlex.split("pkill callisto"))
+        except PermissionError as err:
+            print("Could not kill all callisto instances. Trying via tcp later and hoping for the best.")
+            pass
+        return
 
     def run_daemon(self, manager="sudo /bin/systemctl", action="start"):
         """Start callisto daemon."""
         try:
             command = manager + " " + action + " " + self.daemon
-            process = subprocess.Popen(shlex.split(command), check=True)
+            process = subprocess.Popen(shlex.split(command))
             result = self.get_PID()
             return result
         except subprocess.CalledProcessError as err:
@@ -86,19 +105,19 @@ class Callisto:
 
     def run_callisto(self, mode):
         """Run a manual measurement with callisto in the `mode` determined in the argument. Appropriate config files should be present."""
-        if self.check_daemon():
-            # Manual operation. First kill any running daemon.
-            self.run_daemon(action="stop")
+        # This is a manual run that load a config file. First stop all running # process.
+        self.stop()
         try:
             # Manual operation. Kill any stray callisto program via tcp.
             self.do_callisto(self.quit_command)
-            command = self.executable + "--config /etc/callisto/callisto_" + str(mode) + ".cfg"
+            command = self.executable + " --config /etc/callisto/callisto_" + str(mode) + ".cfg"
             # Run callisto with appropriate configuration file in manual mode.
-            process = subprocess.Popen(shlex.split(command), check=True)
+            print(command)
+            process = subprocess.Popen(shlex.split(command))
             result = self.get_PID()
             return result
         except subprocess.CalledProcessError as err:
-            print("Smothing went wrong when starting the Daemon: {}".format(err))
+            print("run_callisto Smothing went wrong when starting the Daemon: {}".format(err))
             return None
         return
 
@@ -106,25 +125,25 @@ class Callisto:
         """Open tcp socket to control callisto program."""
         try:
             sock = self.connect()
-            sock.sendall(command)
-        except socket.error as err:
-            print("Caught exception {}".format(err))
-        finally:
+            sock.sendall(command.encode())
             sock.shutdown(socket.SHUT_RDWR)
             sock.close()
+        except socket.error as err:
+            print("do_callisto Caught exception {}".format(err))
+            pass
         return self
 
-    def record_ovs(self, conf=None):
+    def record_ovs(self, mode):
         """Run a single manual spectrum overview."""
-        self.run_callisto()
+        self.run_callisto(mode)
         self.do_callisto(self.stop_command)
         self.do_callisto(self.ovs_command)
         self.do_callisto(self.stop_command)
         return
 
-    def record_fits(self, conf=None):
+    def record_fits(self, mode):
         """Run a single manual fits measurement."""
-        self.run_callisto()
+        self.run_callisto(mode)
         self.do_callisto(self.stop_command)
         self.do_callisto(self.fits_command)
         self.do_callisto(self.stop_command)
@@ -155,14 +174,15 @@ class Callisto:
 class CalibrationUnit():
     """Class `CalibrationUnit` controls the arduino which, in turn, controls the relay switched in the calibration unit of callisto spectrometer via serial port."""
 
-    def __init__(self, tty="/dev/ttyACM0"):
+    def __init__(self, tty="/dev/ttyACM0", baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=1, version=VERSION):
         self._tty = tty
-        self.baudrate = 9600
-        self.bytesize = serial.EIGHTBITS
-        self.parity = serial.PARITY_NONE
-        self.stopbits = serial.STOPBITS_ONE
-        self.timeout = 1
+        self.baudrate = baudrate
+        self.bytesize = bytesize
+        self.parity = parity
+        self.stopbits = stopbits
+        self.timeout = timeout
         self.serial = None
+        self.version = version
         return
 
     @property
@@ -175,37 +195,49 @@ class CalibrationUnit():
 
     def connect(self):
         """Star serial connection with arduino in calibration unit."""
-        self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.stopbits, timeout=1)
+        self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.parity, self.stopbits, timeout=1)
         return self
 
     def check(self):
-        """To be implemented."""
-        return True
+        try:
+            self.connect()
+            self.serial.write(b"V?\n")
+            response = self.serial.readline().decode(encoding='UTF-8',errors='strict').strip()
+            if response == self.version:
+                result = True
+            else:
+                result = False
+        except serial.SerialException as err:
+            print("Ops: {}".format(err))
+            result = False
+            pass
+        return result
 
     def set_relay(self, mode):
         """Set relay state in calibration unit."""
         try:
             if mode == "COLD":
-                command = b"Tcold"
+                command = b"Tcold\n"
             elif mode == "WARM":
-                command = b"Twarm"
+                command = b"Twarm\n"
             elif mode == "HOT":
-                command = b"Thot"
+                command = b"Thot\n"
             elif mode == "SKY":
-                command = b"Tsky"
+                command = b"Tsky\n"
             else:
                 print("Mode unkown.")
             self.connect()
             result = self.serial.write(command)
+            self.serial.close()
         except serial.SerialTimeoutException as err:
             print("Mode {} not set - Timeout: {}".format(mode, err))
         finally:
             self.serial.close()
-        return result
+        return
 
 def main():
     cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
-    callisto = Callisto(PORT=6789, cal_unit=cal_unit):
+    callisto = Callisto(PORT=6789, cal_unit=cal_unit)
     callisto.calibrate()
 
 if __name__ == "__main__":
