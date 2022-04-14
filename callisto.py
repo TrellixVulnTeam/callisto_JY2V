@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 Module with definitions for handling callisto and its calibration unit.
 Implement classes for command line and serial port.
@@ -12,7 +13,7 @@ import subprocess
 
 class Callisto:
     """Class `Callisto` controls the operation of spectrometer in manual mode via command line and tcp connection."""
-    def __init__(self, IP=None, PORT=6789, fits_command="start", ovs_command="overview", stop_command="stop", quit_command="quit", daemon="/etc/systemd/system/callisto.service", executable="/usr/sbin/callisto", cal_unit=None):
+    def __init__(self, IP=None, PORT=6789, fits_command="start", ovs_command="overview", stop_command="stop", quit_command="quit", daemon="callisto.service", executable="/usr/sbin/callisto", cal_unit=None):
         self.IP = IP
         self.PORT = PORT
         self.fits_command = fits_command
@@ -71,10 +72,11 @@ class Callisto:
         else:
             return None
 
-    def run_daemon(self):
+    def run_daemon(self, manager="sudo /bin/systemctl", action="start"):
         """Start callisto daemon."""
         try:
-            process = subprocess.Popen(shlex.split(self.daemon), check=True)
+            command = manager + " " + action + " " + self.daemon
+            process = subprocess.Popen(shlex.split(command), check=True)
             result = self.get_PID()
             return result
         except subprocess.CalledProcessError as err:
@@ -86,8 +88,7 @@ class Callisto:
         """Run a manual measurement with callisto in the `mode` determined in the argument. Appropriate config files should be present."""
         if self.check_daemon():
             # Manual operation. First kill any running daemon.
-            command = "systemctl stop" + self.daemon
-            process = subprocess.Popen(shlex.split(command), check=True)
+            self.run_daemon(action="stop")
         try:
             # Manual operation. Kill any stray callisto program via tcp.
             self.do_callisto(self.quit_command)
@@ -147,7 +148,7 @@ class Callisto:
             for mode in ["COLD", "WARM", "HOT"]:
                 self._calibrate(mode)
             self.do_callisto(self.stop_command)
-            self.run_daemon()
+            self.run_daemon(action="start")
         return
 
 
