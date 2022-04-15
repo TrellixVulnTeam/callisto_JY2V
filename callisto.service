@@ -2,13 +2,12 @@
 Description=callisto daemon
 
 [Service]
-PIDFile = /var/run/callisto.pid
 User = callisto
 Group = callisto
 WorkingDirectory = /usr/sbin/
 ExecStart = /bin/sh -c '/usr/sbin/callisto --config /etc/callisto/callisto.cfg'
-Type = simple
-TimeoutStopSec = 10
+Type = forking
+TimeoutStopSec = 20
 Restart=on-failure
 RestartSec=5
 
