@@ -22,11 +22,12 @@ In order to the python script to be able to control the daemon, there must be a 
      - `callisto_COLD.cfg`: configuration file for manual operation with focus code `01` (COLD operation)
      - `callisto_WARM.cfg`: configuration file for manual operation with focus code `02` (WARM operation)
      - `callisto_HOT.cfg`: configuration file for manual operation with focus code `03` (HOT operation)
--`\opt\callisto`: folder for data and logging:
-     - `\data\`: stores `fit` files.
-     - `\ovs\`: stores spectral overview files.
-     - `\LC\`: stores Light Curve files.
+- `\opt\callisto`: folder for data and logging.
+     - `data`:stores `fit` files.
+     - `\ovs`: stores spectral overview files.
+     - `\LC`: stores Light Curve files.
      - `log`: stores logging and error from different callisto scripts.
+
 - `\etc\systemd\system\`: stores de service daemon `callisto.service`
 - `\usr\sbin`: folder stores `callisto` binary file.
 - `\usr\local\bin`: folder stores executable python script `callisto.py` that controls callibration.
@@ -35,10 +36,13 @@ In order to the python script to be able to control the daemon, there must be a 
 
 The file `callisto.py` is a python module implementing two classes (`Callisto` and `CalibrationUnit`) and they offer a great deal of control and possibility to customize every parameters.
 
-As the main design principles:
-     - It ts possible to start and stop the callisto binary program as a service daemon.
-     - It is possible to connect to a running callisto via TCP and perform operations (start, stop, ovs, quit).
-     - Calibration Unit is controlled via serial connection by sending specific arduino controlls.
-     - The atomic concect is of a single callisto run with definite focus code and relay switch mode and this can be performed programaticaly any number of time of can be daemonized.
+## Design principles:
 
-     
+- It ts possible to start and stop the callisto binary program as a service daemon.
+- It is possible to connect to a running callisto via TCP and perform operations (start, stop, ovs, quit).
+- Calibration Unit is controlled via serial connection by sending specific arduino controlls.
+- The atomic concect is of a single callisto run with definite focus code and relay switch mode and this can be performed programaticaly any number of time of can be daemonized.
+
+## Relations in Callisto.Py
+
+![Diagrama](./callisto_diagram.png)     

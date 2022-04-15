@@ -1,9 +1,23 @@
 #!/usr/bin/python3
+# -*- coding: utf-8 -*-
+"""Simple package to handle the operation of callisto spectrometer and its calibration unit in Linux using system callisto binary files available for major distributions, TCP connection to send signals to spectrometer and serial connection to control relay switch in Calibration Unit.
+
+@Author: Luciano Barosi
+@Date: 15.04.2022
+@Links: https://github.com/lbarosi/callisto
+
 """
-Module with definitions for handling callisto and its calibration unit.
-Implement classes for command line and serial port.
-"""
+#----------------------------
+#----------------------------
+__license__ = "GPL"
+__version__ = "1.0.1"
+__maintainer__ = "Luciano Barosi"
+__email__ = "lbarosi@df.ufcg.edu.br"
+__status__ = "Development"
+#----------------------------
+#----------------------------
 from io import StringIO
+import multiprocessing
 import os
 import sys
 import serial
@@ -13,9 +27,28 @@ import socket
 import subprocess
 #----------------------------
 import pandas as pd
-
+#----------------------------
+#----------------------------
+# Wow, a global variable. Long time no see!
 VERSION = "Version: ETHZ Arduino_PrototypeV85.ino; 2016-08-17/cm"
+#----------------------------
+#----------------------------
+# Module functions
+def run_command(command):
+    """Execute given command string as a shell process."""
+    process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = process.communicate()
+    return (out, err)
 
+def run_detached(command):
+    """Execute the given command in a separate thread and continue execution."""
+    process = multiprocessing.Process(target = run_command, args=command)
+    process.start()
+    result = process.pid
+    return result
+#----------------------------
+# CLASS
+#----------------------------
 class Callisto:
     """Class `Callisto` controls the operation of spectrometer in manual mode via command line and tcp connection."""
     def __init__(self, IP=None, PORT=6789, fits_command="start", ovs_command="overview", stop_command="stop", quit_command="quit", daemon="callisto.service", executable="/usr/sbin/callisto", cal_unit=None):
@@ -30,11 +63,7 @@ class Callisto:
         self.cal_unit = cal_unit
 
     def get_ip(self):
-        """Determina IP da máquina local.
-
-        Returns:
-            str: IP.
-        """
+        """Retrieve local IP."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(0)
         try:
@@ -48,10 +77,11 @@ class Callisto:
         return self
 
     def get_PID(self):
-        """Determine PID of callisto process running as daemon."""
+        """Determine PID of callisto process running as daemon and return a list with IPs of an empty list. Uses system `ps`."""
         try:
             command = "ps aux"
             process_name = "callisto"
+            # Run in place, do not detach this.
             ps = subprocess.run(shlex.split(command), check=True, capture_output=True)
             processNames = subprocess.run(shlex.split('grep ' + process_name), input=ps.stdout, capture_output=True)
             if processNames.stdout.decode():
@@ -61,84 +91,85 @@ class Callisto:
                 PID = df_ps[df_ps[10] == process_name][1].values.tolist()
             else:
                 PID = []
-
         except subprocess.CalledProcessError as err:
             print("Could not retrieve PID information for callisto: {}.".format(err))
         return PID
 
-    def connect(self):
-        """Create socket for TCP connection with callisto software."""
-        if not self.IP:
-            self.get_ip()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_address = (self.IP, self.PORT)
+    def run_daemon(self, manager="sudo /bin/systemctl", action="start"):
+        """Start callisto daemon."""
+        # Safe to as forgiveness in thread, systemd service stop always behave nicely.
         try:
-            sock.connect(server_address)
-        except socket.error as err:
-            print("Caught exception {}".format(err))
-        return sock
+            command = manager + " " + action + " " + self.daemon
+            result = run_detached(command)
+            return result
+        except OSError as err:
+            print("Something went wrong when starting the Daemon: {}".format(err))
+            return None
+        return
 
     def stop(self):
+        """Stop every instance of callisto program running. First stops de systemd service, that aggresively kills all remaining processess. Needs sudoer rules inplace."""
         # Stop daemon
         self.run_daemon(action="stop")
         # Check any stray processes.
         PIDs = self.get_PID()
         try:
             #[ os.kill(int(PID), signal.SIGSTOP) for PID in PIDs if PIDs ]
-            subprocess.run(shlex.split("pkill callisto"))
+            # Aggressive kill should be re-examined.
+            # Need to include sudoers rule to pkill.
+            # Is there a better way to kill other users process that may be running callisto?
+            subprocess.run(shlex.split("sudo pkill " + self.executable))
         except PermissionError as err:
             print("Could not kill all callisto instances. Trying via tcp later and hoping for the best.")
             pass
         return
 
-    def run_daemon(self, manager="sudo /bin/systemctl", action="start"):
-        """Start callisto daemon."""
-        try:
-            command = manager + " " + action + " " + self.daemon
-            process = subprocess.Popen(shlex.split(command))
-            result = self.get_PID()
-            return result
-        except subprocess.CalledProcessError as err:
-            print("Smothing went wrong when starting the Daemon: {}".format(err))
-            return None
-        return
 
-    def run_callisto(self, mode):
+    def run(self, mode):
         """Run a manual measurement with callisto in the `mode` determined in the argument. Appropriate config files should be present."""
-        # This is a manual run that load a config file. First stop all running # process.
+        # This is a manual run that load a config file, need to first stop all running processes.
         self.stop()
         try:
-            # Manual operation. Kill any stray callisto program via tcp.
-            self.do_callisto(self.quit_command)
             command = self.executable + " --config /etc/callisto/callisto_" + str(mode) + ".cfg"
-            # Run callisto with appropriate configuration file in manual mode.
-            print(command)
-            process = subprocess.Popen(shlex.split(command))
-            result = self.get_PID()
+            result = run_detached(command)
             return result
-        except subprocess.CalledProcessError as err:
+        except OSError as err:
             print("run_callisto Smothing went wrong when starting the Daemon: {}".format(err))
             return None
         return
 
+    def connect(self):
+        """Create socket for TCP connection with callisto software."""
+        if not self.IP:
+            self.get_ip()
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_address = (self.IP, self.PORT)
+            sock.connect(server_address)
+        except socket.error as err:
+            print("Caught exception {}".format(err))
+        return sock
+
+
     def do_callisto(self, command=None):
         """Open tcp socket to control callisto program."""
-        try:
-            sock = self.connect()
-            sock.sendall(command.encode())
-            sock.shutdown(socket.SHUT_RDWR)
-            sock.close()
-        except socket.error as err:
-            print("do_callisto Caught exception {}".format(err))
-            pass
+        if self.get_PID():
+            try:
+                sock = self.connect()
+                sock.sendall(command.encode())
+                sock.shutdown(socket.SHUT_RDWR)
+                sock.close()
+            except socket.error as err:
+                print("do_callisto Caught exception {}".format(err))
+                pass
         return self
 
     def record_ovs(self, mode):
         """Run a single manual spectrum overview."""
-        self.run_callisto(mode)
-        self.do_callisto(self.stop_command)
-        self.do_callisto(self.ovs_command)
-        self.do_callisto(self.stop_command)
+        self.run(mode)
+        self.do(self.stop_command)
+        self.do(self.ovs_command)
+        self.do(self.stop_command)
         return
 
     def record_fits(self, mode):
@@ -169,8 +200,9 @@ class Callisto:
             self.do_callisto(self.stop_command)
             self.run_daemon(action="start")
         return
-
-
+#----------------------------
+# CLASS
+#----------------------------
 class CalibrationUnit():
     """Class `CalibrationUnit` controls the arduino which, in turn, controls the relay switched in the calibration unit of callisto spectrometer via serial port."""
 
@@ -199,6 +231,7 @@ class CalibrationUnit():
         return self
 
     def check(self):
+        """Check if device in serial may respond as a Callisto Callibration Unit by checking the version of software being used."""
         try:
             self.connect()
             self.serial.write(b"V?\n")
@@ -235,6 +268,9 @@ class CalibrationUnit():
             self.serial.close()
         return
 
+#----------------------------
+# MAIN
+#----------------------------
 def main():
     cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
     callisto = Callisto(PORT=6789, cal_unit=cal_unit)
@@ -242,3 +278,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+#----------------------------
+#----------------------------
