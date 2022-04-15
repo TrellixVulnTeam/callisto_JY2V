@@ -39,7 +39,7 @@ else
   # Configuring sudoers to allow start and stop callisto service only.
   # This is not much of a securuty concern.
   sudo touch /etc/sudoers.d/callisto
-  sudo chmod 440 /et/sudoers.d/callisto
+  sudo chmod 440 /etc/sudoers.d/callisto
   echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl start callisto.service" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/callisto')
   echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl stop callisto.service" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/callisto')
   echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl reload callisto.service" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/callisto')
@@ -54,8 +54,8 @@ else
   sudo chown callisto:callisto /usr/local/bin/callisto.py
   sudo chmod u+x /usr/local/bin/callisto.py
   # Installing CRON job twice a day
-  echo "00 0 * * * callisto /usr/bin/python -m /usr/local/bin/callisto.py >> /opt/callisto/log/callisto.log 2>&1" >> (sudo tee -a /etc/crontab)
-  echo "00 12 * * * callisto /usr/bin/python -m /usr/local/bin/callisto.py >> /opt/callisto/log/callisto.log 2>&1" >> (sudo tee -a /etc/crontab)
+  sudo /bin/bash -c 'echo "00 0 * * * callisto /usr/bin/python -m /usr/local/bin/callisto.py >> /opt/callisto/log/callisto.log 2>&1" >> /etc/crontab'
+  sudo /bin/bash -c  'echo "00 12 * * * callisto /usr/bin/python -m /usr/local/bin/callisto.py >> /opt/callisto/log/callisto.log 2>&1" >> /etc/crontab'
   # Start DAEMON service.
   echo "Iniciando serviço daemon"
   sudo systemctl daemon-reload
