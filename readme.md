@@ -45,4 +45,4 @@ The file `callisto.py` is a python module implementing two classes (`Callisto` a
 
 ## Relations in Callisto.Py
 
-![Diagrama](./callisto_diagram.png)     
+![Diagrama](./callistoDiagram.png)     

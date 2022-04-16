@@ -40,9 +40,10 @@ else
   # This is not much of a securuty concern.
   sudo touch /etc/sudoers.d/callisto
   sudo chmod 440 /etc/sudoers.d/callisto
-  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl start callisto.service" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/callisto')
-  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl stop callisto.service" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/callisto')
-  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl reload callisto.service" | (sudo su -c 'EDITOR="tee" visudo -f /etc/sudoers.d/callisto')
+  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl start callisto.service" >> /etc/sudoers.d/callisto'
+  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl stop callisto.service" >> /etc/sudoers.d/callisto'
+  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl reload callisto.service" >> /etc/sudoers.d/callisto'
+  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:pkill callisto" >> /etc/sudoers.d/callisto'
   # Moving all files to its places. Be sure to make the necessary changes to CFG files. COM port should be set properly.
   echo "Copying files"
   sudo cp *.cfg /etc/callisto

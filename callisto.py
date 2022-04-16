@@ -214,8 +214,8 @@ class Callisto:
     def _calibrate(self, mode):
         """Measure for calibration in single mode of operation."""
         # Run measurementes
-        self.record_ovs()
-        self.record_fits()
+        self.record_ovs(mode)
+        self.record_fits(mode)
         # Always go back to sky mode.
         self.cal_unit.set_relay("SKY")
         return
