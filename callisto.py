@@ -302,7 +302,7 @@ class Callisto:
             logging.info("Full calibration started")
             for mode in ["COLD", "WARM", "HOT"]:
                 self._calibrate(mode)
-                self.stop()
+            self.stop()
             self.run_daemon(action="start")
             self.cal_unit.set_relay("SKY")
             logging.info("Full calibration finished")
