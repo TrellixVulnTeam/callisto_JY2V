@@ -26,6 +26,8 @@ import time
 # ----------------------------
 import pandas as pd
 import serial
+import watchdog.events
+from watchdog.observers import Observer
 # ----------------------------
 # ----------------------------
 # Wow, a global variable. Long time no see!
@@ -58,6 +60,53 @@ def run_detached(command):
     return result
 
 
+class Handler(watchdog.events.PatternMatchingEventHandler):
+    def __init__(self, pattern=None):
+        """Handler to watchdog filesystem checker."""
+        # Set the patterns for PatternMatchingEventHandler
+        watchdog.events.PatternMatchingEventHandler.__init__(self,
+        patterns=[pattern], ignore_directories=True, case_sensitive=False)
+        self.created = False
+
+    def on_created(self, event):
+        logging.info("File created: {}".format(event.src_path))
+        self.created = True
+
+
+class WatchFolder:
+    """WatchDog Class."""
+
+    def __init__(self, path=None, recursive=False, pattern=None, watch_time=None):
+        self.observer = Observer()
+        self.path = path
+        self.recursive= recursive
+        self.pattern = pattern
+        self.watch_time = watch_time
+
+    def run(self):
+        event_handler = Handler(pattern=self.pattern)
+        self.observer.schedule(
+                                event_handler,
+                                path=self.path,
+                                recursive = self.recursive
+                                )
+        self.observer.start()
+        start_time = time.perf_counter()
+        try:
+            print(event_handler.created)
+            while not event_handler.created:
+                if time.perf_counter() - start_time > self.watch_time:
+                    logging.error("Taking too long to create {}. Aborting.".format(self.pattern))
+                    break
+        except Exception as err:
+            self.observer.stop()
+            logging.error("Something went wrong while watching filesystem: {}".err)
+        finally:
+            print("finally block")
+            self.observer.stop()
+        self.observer.join()
+
+
 class Callisto:
     """Class `Callisto` controls the operation of spectrometer in manual
        mode via command line and tcp connection.
@@ -76,6 +125,8 @@ class Callisto:
         self.daemon = daemon
         self.executable = executable
         self.cal_unit = cal_unit
+        self.ovs_folder = "/opt/callisto/Ovs"
+        self.data_folder = "/opt/callisto/data"
 
     def get_ip(self):
         """Retrieve local IP."""
@@ -121,6 +172,14 @@ class Callisto:
             print("Could not retrieve PID information for callisto: {}.".format(err))
         return PID
 
+    def is_running():
+        time_start = time.perf_counter()
+        while get_PID:
+            if time.perf_counter() - time_start > 10:
+                logging.error("Taking too long ot die.")
+                break
+        return
+
     def run_daemon(self, manager="sudo /bin/systemctl", action="start"):
         """Start callisto daemon."""
         try:
@@ -140,7 +199,11 @@ class Callisto:
         # Check any stray processes.
         PIDs = self.get_PID()
         try:
-            subprocess.run(shlex.split("sudo pkill " + self.executable.split("/")[-1]))
+            #subprocess.run(shlex.split("sudo pkill " + self.executable.split("/")[-1]))
+            thread = threading.Thread(target=is_running)
+            thread.start()
+            result = run_detached("pkill callisto")
+            thread.join()
         except PermissionError as err:
             logging.error("Could not kill all callisto instances. Trying via tcp later and hoping for the best.")
             pass
@@ -191,13 +254,15 @@ class Callisto:
                 pass
         return
 
-    def record_ovs(self, mode):
+    def record_ovs(self, mode, time=180):
         """Run a single manual spectrum overview."""
         # Set control unit in correct mode.
         self.cal_unit.set_relay(mode)
         self.run(mode)
         self.do(self.stop_command)
         self.do(self.ovs_command)
+        watch = WatchFolder(path=self.ovs_folder, pattern="*.PRN", watch_time=time)
+        watch.run()
         self.do(self.stop_command)
         return
 
@@ -208,6 +273,8 @@ class Callisto:
         self.run(mode)
         self.do(self.stop_command)
         self.do(self.fits_command)
+        watch = WatchFolder(path=self.data_folder, pattern="*.fit", watch_time=time)
+        watch.run()
         self.do(self.stop_command)
         return
 
