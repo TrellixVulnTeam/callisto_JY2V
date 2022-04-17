@@ -22,6 +22,7 @@ import multiprocessing
 import shlex
 import socket
 import subprocess
+import threading
 import time
 # ----------------------------
 import pandas as pd
@@ -93,16 +94,14 @@ class WatchFolder:
         self.observer.start()
         start_time = time.perf_counter()
         try:
-            print(event_handler.created)
             while not event_handler.created:
-                if time.perf_counter() - start_time > self.watch_time:
+                if time.perf_counter() - start_time > float(self.watch_time):
                     logging.error("Taking too long to create {}. Aborting.".format(self.pattern))
                     break
         except Exception as err:
             self.observer.stop()
             logging.error("Something went wrong while watching filesystem: {}".err)
         finally:
-            print("finally block")
             self.observer.stop()
         self.observer.join()
 
@@ -172,9 +171,9 @@ class Callisto:
             print("Could not retrieve PID information for callisto: {}.".format(err))
         return PID
 
-    def is_running():
+    def is_running(self):
         time_start = time.perf_counter()
-        while get_PID:
+        while self.get_PID():
             if time.perf_counter() - time_start > 10:
                 logging.error("Taking too long ot die.")
                 break
@@ -200,7 +199,7 @@ class Callisto:
         PIDs = self.get_PID()
         try:
             #subprocess.run(shlex.split("sudo pkill " + self.executable.split("/")[-1]))
-            thread = threading.Thread(target=is_running)
+            thread = threading.Thread(target=self.is_running)
             thread.start()
             result = run_detached("pkill callisto")
             thread.join()
@@ -222,7 +221,7 @@ class Callisto:
             return None
         return
 
-    def connect(self, timeout=1):
+    def connect(self, timeout=5):
         """Create socket for TCP connection with callisto software."""
         if not self.IP:
             self.get_ip()
@@ -266,7 +265,7 @@ class Callisto:
         self.do(self.stop_command)
         return
 
-    def record_fits(self, mode):
+    def record_fits(self, mode, time=1200):
         """Run a single manual fits measurement."""
         # Set control unit in correct mode.
         self.cal_unit.set_relay(mode)
@@ -284,21 +283,31 @@ class Callisto:
         self.record_ovs(mode)
         self.record_fits(mode)
         # Always go back to sky mode.
-        self.cal_unit.set_relay("SKY")
+        #self.cal_unit.set_relay("SKY")
         return
 
-    def calibrate(self):
+    def calibrate(self, timeout=1):
         """Calibrate all modes."""
-        if self.cal_unit.check():
-            # Start COLD calibration.
+        start_time = time.perf_counter()
+        while True:
+            try:
+                arduino_ok = self.cal_unit.check()
+                if arduino_ok:
+                    break
+            except OSError as ex:
+                time.sleep(1)
+                if time.perf_counter() - start_time >= 10 * timeout:
+                    raise TimeoutError('Waited too long for arduino.')
+        if arduino_ok:
             logging.info("Full calibration started")
             for mode in ["COLD", "WARM", "HOT"]:
                 self._calibrate(mode)
-                # wait 20min between measurements
-                time.sleep(1200)
-            self.do(self.stop_command)
+                self.stop()
             self.run_daemon(action="start")
+            self.cal_unit.set_relay("SKY")
             logging.info("Full calibration finished")
+        else:
+            logging.error("calibration unit did not responded.")
         return
 # ----------------------------
 # CLASS
@@ -327,7 +336,11 @@ class CalibrationUnit():
 
     def connect(self):
         """Star serial connection with arduino in calibration unit."""
-        self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.parity, self.stopbits, timeout=1)
+        try:
+            self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.parity, self.stopbits, timeout=5)
+        except serial.SerialException as err:
+            logging.error("Could not connect to arduino: {}".format(err))
+            pass
         return self
 
     def check(self):
@@ -361,7 +374,7 @@ class CalibrationUnit():
                 print("Mode unkown.")
             self.connect()
             result = self.serial.write(command)
-            self.serial.close()
+            time.sleep(1)
         except serial.SerialTimeoutException as err:
             logging.error("Mode {} not set - Timeout: {}".format(mode, err))
         finally:
