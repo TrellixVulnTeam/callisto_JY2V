@@ -416,22 +416,13 @@ class CalibrationUnit():
 # MAIN
 # ----------------------------
 def main():
-<<<<<<< HEAD
     handler = logging.FileHandler("/opt/callisto/log/callisto.log")
     formatter = logging.Formatter(
         '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-=======
 
-    handler = logging.handlers.WatchedFileHandler(os.environ.get("LOGFILE", "/var/log/callisto.log"))
-    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
-
->>>>>>> ef83cdb84b1aa5b50bffe393adbce0ee862b9778
     cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
     callisto = Callisto(PORT=6789, cal_unit=cal_unit)
     callisto.calibrate()
