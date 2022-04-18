@@ -32,6 +32,7 @@ else
   # Read+write permissions for folder structure plus permissions to use serial port in order to handle calibration unit.
   echo "Setting Permissions."
   sudo chown -R callisto:callisto /opt/callisto/
+  sudo chown -R :callisto /etc/callisto/
   sudo chmod g+s /opt/callisto/
   sudo usermod -a -G tty callisto
   sudo usermod -a -G dialout callisto
@@ -40,10 +41,11 @@ else
   # This is not much of a securuty concern.
   sudo touch /etc/sudoers.d/callisto
   sudo chmod 440 /etc/sudoers.d/callisto
-  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl start callisto.service" >> /etc/sudoers.d/callisto'
-  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl stop callisto.service" >> /etc/sudoers.d/callisto'
-  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl reload callisto.service" >> /etc/sudoers.d/callisto'
-  sudo /bin/bash -c 'echo "$CALLISTO ALL=NOPASSWD:/usr/bin/pkill callisto" >> /etc/sudoers.d/callisto'
+  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl start callisto.service" | sudo tee /etc/sudoers.d/callisto
+  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl stop callisto.service" | sudo tee /etc/sudoers.d/callisto
+  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl restart callisto.service" | sudo tee /etc/sudoers.d/callisto
+  echo "$CALLISTO ALL=NOPASSWD:/bin/systemctl is-activate --quiet  callisto.service || callisto.service restart" | sudo tee /etc/sudoers.d/callisto
+  echo "$CALLISTO ALL=NOPASSWD:/usr/bin/pkill callisto" | sudo tee /etc/sudoers.d/callisto
   # Moving all files to its places. Be sure to make the necessary changes to CFG files. COM port should be set properly.
   echo "Copying files"
   sudo cp *.cfg /etc/callisto
@@ -57,6 +59,7 @@ else
   # Installing CRON job twice a day
   sudo /bin/bash -c 'echo "00 0 * * * callisto /usr/bin/python -m /usr/local/bin/callisto.py >> /opt/callisto/log/callisto.log 2>&1" >> /etc/crontab'
   sudo /bin/bash -c  'echo "00 12 * * * callisto /usr/bin/python -m /usr/local/bin/callisto.py >> /opt/callisto/log/callisto.log 2>&1" >> /etc/crontab'
+  sudo /bin/bash -c  'echo "00 02 * * * callisto systemctl is-active --quiet callisto.service || callisto.service restart >> /opt/callisto/log/callisto.log 2>&1" >> /etc/crontab'
   # Start DAEMON service.
   echo "Iniciando serviço daemon"
   sudo systemctl daemon-reload
