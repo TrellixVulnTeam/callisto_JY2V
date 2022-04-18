@@ -19,6 +19,7 @@ __status__ = "Development"
 from io import StringIO
 import logging
 import multiprocessing
+import os
 import shlex
 import socket
 import subprocess
@@ -53,7 +54,6 @@ def run_command(command):
             logging.error("Error running command {}:{}".format(command, err))
     return (out, err)
 
-
 def run_detached(command):
     """Execute the given command in separate thread and continue execution."""
     try:
@@ -84,12 +84,12 @@ class Handler(watchdog.events.PatternMatchingEventHandler):
 class WatchFolder:
     """WatchDog Class."""
 
-    def __init__(self, path=None, recursive=False, pattern=None, watch_time=None):
+    def __init__(self, path=None, recursive=False, pattern=None, timeout=None):
         self.observer = Observer()
         self.path = path
         self.recursive= recursive
         self.pattern = pattern
-        self.watch_time = watch_time
+        self.timeout = timeout
 
     def run(self):
         event_handler = Handler(pattern=self.pattern)
@@ -102,7 +102,7 @@ class WatchFolder:
         start_time = time.perf_counter()
         try:
             while not event_handler.created:
-                if time.perf_counter() - start_time > float(self.watch_time):
+                if time.perf_counter() - start_time > float(self.timeout):
                     logger.error("Taking too long to create {}. Aborting.".format(self.pattern))
                     break
         except Exception as err:
@@ -201,6 +201,13 @@ class Callisto:
         self.stop()
         command = self.executable + " --config /etc/callisto/callisto_" + str(mode) + ".cfg"
         response, error = run_command(command)
+        if I_AM_NOT_CALLISTO in error:
+            logger.error("Could not communicate with Callisto in USB port."
+                         "Trying again.")
+            time.sleep(5)
+            response, error = run_command(command)
+            if error:
+                logger.error("Device report that it is not Callisto. Aborting.")
         return response, error
 
     def connect(self, timeout=2):
@@ -409,6 +416,13 @@ class CalibrationUnit():
 # MAIN
 # ----------------------------
 def main():
+
+    handler = logging.handlers.WatchedFileHandler(os.environ.get("LOGFILE", "/var/log/callisto.log"))
+    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+
     cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
     callisto = Callisto(PORT=6789, cal_unit=cal_unit)
     callisto.calibrate()
