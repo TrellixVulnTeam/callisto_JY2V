@@ -4,7 +4,7 @@ Callisto spectrometer has packages to run with major linux distributions, includ
 
 Since the callibration unit is controlled by an ARDUINO UNO whose serial port is available to external communication, it is possible to combine the funcionalities of the command line utility with some funcionalities to control the serial port.
 
-The instalation script `install.sh` should be run as privileged user or you may take a look into it and adapt to your needs.
+The instalation script `install.sh` should be run as privileged user or you may take a look into it and adapt to your needs. **Remember that it is safer to use a privileged user outside a script.**
 
 The basic procedure is:
 - Create user and set permissions to use the serial port and appropriate folders.
