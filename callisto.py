@@ -385,6 +385,12 @@ class CalibrationUnit():
 # MAIN
 # ----------------------------
 def main():
+    handler = logging.FileHandler("/opt/callisto/log/callisto.log")
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
     cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
     callisto = Callisto(PORT=6789, cal_unit=cal_unit)
     callisto.calibrate()
