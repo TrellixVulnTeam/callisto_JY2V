@@ -253,7 +253,7 @@ class Callisto:
         self.run(mode)
         self.do(self.stop_command)
         self.do(self.ovs_command)
-        watch = WatchFolder(path=self.ovs_folder, pattern="*.PRN", watch_time=time)
+        watch = WatchFolder(path=self.ovs_folder, pattern="*.PRN", timeout=time)
         watch.run()
         self.do(self.stop_command)
         return
@@ -265,7 +265,7 @@ class Callisto:
         self.run(mode)
         self.do(self.stop_command)
         self.do(self.fits_command)
-        watch = WatchFolder(path=self.data_folder, pattern="*.fit", watch_time=time)
+        watch = WatchFolder(path=self.data_folder, pattern="*.fit", timeout=time)
         watch.run()
         self.do(self.stop_command)
         return
