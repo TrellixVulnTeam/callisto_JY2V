@@ -16,6 +16,7 @@ __email__ = "lbarosi@df.ufcg.edu.br"
 __status__ = "Development"
 # ----------------------------
 # ----------------------------
+import argparse
 from io import StringIO
 import logging
 import multiprocessing
@@ -412,10 +413,9 @@ class CalibrationUnit():
         response = self.send_command(command)
         return response
 
-# ----------------------------
-# MAIN
-# ----------------------------
+
 def main():
+    """Roda programa principal do módulo."""
     handler = logging.FileHandler("/opt/callisto/log/callisto.log")
     formatter = logging.Formatter(
         '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
@@ -423,9 +423,45 @@ def main():
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
 
-    cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
-    callisto = Callisto(PORT=6789, cal_unit=cal_unit)
-    callisto.calibrate()
+    mod_parser = argparse.ArgumentParser(
+        description="Callisto.py controlador do espectrômetro Callisto."
+        )
+    mod_parser.add_argument(
+        "-a", "--action", type=str,
+        help="action to be taken: start|start-service|overview|stop"
+        )
+    mod_parser.add_argument(
+        "-m", "--mode", type=str,
+        help="mode: SKY|COLD|WARM|HOT"
+    )
+    valid_actions = ["start", "start-service", "overview", "stop"]
+    valid_modes = ["SKY", "COLD", "HOT", "WARM"]
+
+    args = mod_parser.parse_args()
+    action = args.action
+    mode = args.mode
+
+    if not action:
+        cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
+        callisto = Callisto(PORT=6789, cal_unit=cal_unit)
+        callisto.calibrate()
+
+    if mode in valid_modes:
+        logger.info("Operação manual por linha de comando."
+                    "action = {} - mode = {}".format(action, mode))
+        print("Operação manual por linha de comando."
+                    "action = {} - mode = {}".format(action, mode))
+        Callisto.stop()
+        callisto.cal_unit.set_relay(mode)
+        if action == "start":
+            callisto.record_fits(mode)
+        elif action == "overview":
+            callisto.record_ovs(mode)
+        elif action == "start-service":
+            callisto.run_daemon(action="start")
+
+
+
 
 if __name__ == "__main__":
     main()
