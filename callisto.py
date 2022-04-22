@@ -209,6 +209,7 @@ class Callisto:
             response, error = run_command(command)
             if error:
                 logger.error("Device report that it is not Callisto. Aborting.")
+                sys.exit(1)
         return response, error
 
     def connect(self, timeout=2):
@@ -229,7 +230,7 @@ class Callisto:
                     if time.perf_counter() - start_time >= 10 * timeout:
                         raise TimeoutError('Waited too long for host')
         except (ConnectionRefusedError, TimeoutError) as err:
-            logger.error("Callisto took too lon to answer TCP.")
+            logger.error("Callisto took too long to answer TCP.")
             pass
         return sock
 
@@ -282,23 +283,14 @@ class Callisto:
 
     def calibrate(self, timeout=1):
         """Calibrate all modes."""
-        start_time = time.perf_counter()
-        while True:
-            try:
-                arduino_ok = self.cal_unit.check()
-                if arduino_ok:
-                    break
-            except OSError as ex:
-                time.sleep(1)
-                if time.perf_counter() - start_time >= 10 * timeout:
-                    raise TimeoutError('Waited too long for arduino.')
+        arduino_ok = self.cal_unit.check()
         if arduino_ok:
             logger.info("Full calibration started")
             for mode in ["COLD", "WARM", "HOT"]:
                 self._calibrate(mode)
             self.stop()
-            self.run_daemon(action="start")
             self.cal_unit.set_relay("SKY")
+            self.run_daemon(action="start")
             logger.info("Full calibration finished")
         else:
             logger.error("calibration unit did not responded.")
@@ -349,7 +341,7 @@ class CalibrationUnit():
             self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.parity, self.stopbits, timeout=1)
         except serial.SerialException as err:
             logger.error("Could not connect to arduino: {}".format(err))
-            pass
+            sys.exit(1)
         return self
 
     def listen(self):
