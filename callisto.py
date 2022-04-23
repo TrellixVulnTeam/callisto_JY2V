@@ -16,6 +16,7 @@ __email__ = "lbarosi@df.ufcg.edu.br"
 __status__ = "Development"
 # ----------------------------
 # ----------------------------
+import argparse
 from io import StringIO
 import logging
 import multiprocessing
@@ -285,6 +286,7 @@ class Callisto:
             response, error = run_command(command)
             if error:
                 logger.error("Device report that it is not Callisto. Aborting.")
+                sys.exit(1)
         return response, error
 
     def connect(self, timeout:float=2) -> socket.socket:
@@ -313,7 +315,7 @@ class Callisto:
                     if time.perf_counter() - start_time >= 10 * timeout:
                         raise TimeoutError('Waited too long for host')
         except (ConnectionRefusedError, TimeoutError) as err:
-            logger.error("Callisto took too lon to answer TCP.")
+            logger.error("Callisto took too long to answer TCP.")
             pass
         return sock
 
@@ -349,7 +351,7 @@ class Callisto:
         self.run(mode)
         self.do(self.stop_command)
         self.do(self.ovs_command)
-        watch = WatchFolder(path=self.ovs_folder, pattern="*.PRN", watch_time=time)
+        watch = WatchFolder(path=self.ovs_folder, pattern="*.PRN", timeout=time)
         watch.run()
         self.do(self.stop_command)
         return
@@ -366,7 +368,7 @@ class Callisto:
         self.run(mode)
         self.do(self.stop_command)
         self.do(self.fits_command)
-        watch = WatchFolder(path=self.data_folder, pattern="*.fit", watch_time=time)
+        watch = WatchFolder(path=self.data_folder, pattern="*.fit", timeout=time)
         watch.run()
         self.do(self.stop_command)
         return
@@ -400,13 +402,14 @@ class Callisto:
                 time.sleep(1)
                 if time.perf_counter() - start_time >= 10 * timeout:
                     raise TimeoutError('Waited too long for arduino.')
+
         if arduino_ok:
             logger.info("Full calibration started")
             for mode in ["COLD", "WARM", "HOT"]:
                 self._calibrate(mode)
-                self.stop()
-            self.run_daemon(action="start")
+            self.stop()
             self.cal_unit.set_relay("SKY")
+            self.run_daemon(action="start")
             logger.info("Full calibration finished")
         else:
             logger.error("calibration unit did not responded.")
@@ -466,7 +469,7 @@ class CalibrationUnit():
             self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.parity, self.stopbits, timeout=1)
         except serial.SerialException as err:
             logger.error("Could not connect to arduino: {}".format(err))
-            pass
+            sys.exit(1)
         return self
 
     def listen(self):
@@ -532,9 +535,6 @@ class CalibrationUnit():
         response = self.send_command(command)
         return response
 
-# ----------------------------
-# MAIN
-# ----------------------------
 def main():
     """Roda programa principal do módulo."""
     handler = logging.FileHandler("/opt/callisto/log/callisto.log")
@@ -580,6 +580,7 @@ def main():
             callisto.record_ovs(mode)
         elif action == "start-service":
             callisto.run_daemon(action="start")
+
 
 
 if __name__ == "__main__":
