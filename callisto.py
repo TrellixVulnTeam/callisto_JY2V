@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-"""Simple package to handle the operation of callisto spectrometer and its calibration unit in Linux using system callisto binary files available for major distributions, TCP connection to send signals to spectrometer and serial connection to control relay switch in Calibration Unit.
+"""Pacote de controle do espectrômetro Callisto e de sua unidade de calibração em sistemas tipo Linux. Depende do binário callisto da distribuição Linux e utiliza conexão TCP e conexão serial.
 
 @Author: Luciano Barosi
 @Date: 15.04.2022
@@ -40,8 +40,17 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-def run_command(command):
-    """Execute given command string as a shell process."""
+def run_command(command: str) -> tuple[str, str]:
+    """Executa comando shell passado como argumento utilizando biblioteca `subprocess`.
+
+    Função reporta erro no arquivo de log se houver algum erro que não represente a informação do binário callisto de que não detectou o arquivo scheduler, uma vez que este não é um erro e apenas uma informação do status desejado.
+
+    Args:
+        command (str): string de comando escrita da mesma forma que se escreveria em linha de comando.
+
+    Returns:
+        tuple[str, str]: saída padrão e código de erro informado para o comando executado.
+    """
     process = subprocess.Popen(
                                 shlex.split(command),
                                 stdout=subprocess.PIPE,
@@ -54,8 +63,16 @@ def run_command(command):
             logging.error("Error running command {}:{}".format(command, err))
     return (out, err)
 
-def run_detached(command):
-    """Execute the given command in separate thread and continue execution."""
+def run_detached(command: str) -> multiprocessing.Process:
+    """Roda o comando indicado em modo background, liberando a execução do resto do programa.
+
+    Args:
+        command (str): string de comando escrita da mesma forma que se escreveria em linha de comando.
+
+    Returns:
+        multiprocessing.Process: processo em execução.
+
+    """
     try:
         process = multiprocessing.Process(
                                           target=run_command,
@@ -69,22 +86,47 @@ def run_detached(command):
 
 
 class Handler(watchdog.events.PatternMatchingEventHandler):
-    def __init__(self, pattern=None):
-        """Handler to watchdog filesystem checker."""
-        # Set the patterns for PatternMatchingEventHandler
+    """Implementa o gerenciador de eventos de arquivos utilizado em conjunto com o file watchdog.
+
+    Para o módulo callisto só é necessário implementar o método que lida com a criação de arquivos, encarregada de acompanhar a execução das operações do binário callisto e permitir a verificação do sucesso das operações.
+
+    Args:
+        pattern (str): máscara para observar os arquivos `pattern`. Padrão é  None.
+
+    Attributes:
+        created (bool): determina se arquivo satisfazendo a máscara foi ou não criado.
+
+    """
+    def __init__(self, pattern: str=None):
+        """Gerenciados para o observador de arquivos watchdog filesystem checker."""
         watchdog.events.PatternMatchingEventHandler.__init__(self,
         patterns=[pattern], ignore_directories=True, case_sensitive=False)
         self.created = False
 
     def on_created(self, event):
+        """Chamada quando um arquivo satisfazendo a máscara é criado.
+
+        Args:
+            event (DirCreatedEvent or FileCreatedEvent): Evento representando a criação de arquivo ou diretório.
+        """
         logger.info("File created: {}".format(event.src_path))
         self.created = True
 
 
 class WatchFolder:
-    """WatchDog Class."""
+    """Monitoramento contínuo de eventos de arquivos e diretórios baseado no pacote `watchdog`.
 
-    def __init__(self, path=None, recursive=False, pattern=None, timeout=None):
+    Args:
+        path (str): caminho completo onde observar os arquivos. Defaults to None.
+        recursive (bool): Defaults to False.
+        pattern (str): máscara para vigiar arquivos. Defaults to None.
+        timeout (float): `timeout` em segundos para manter vigiando o caminho indicado. Defaults to None.
+
+    Attributes:
+        observer (watchdog.observers): `observer`.
+    """
+
+    def __init__(self, path: str=None, recursive: bool=False, pattern: str=None, timeout: float=None):
         self.observer = Observer()
         self.path = path
         self.recursive= recursive
@@ -92,6 +134,10 @@ class WatchFolder:
         self.timeout = timeout
 
     def run(self):
+        """Inicia observação do caminho indicado.
+
+        Vigia a alteração (criação, modificação, deleção de arquivos ou diretórios) e manipula conforme o `handler` o evento que ocorreu.
+        """
         event_handler = Handler(pattern=self.pattern)
         self.observer.schedule(
                                 event_handler,
@@ -114,14 +160,24 @@ class WatchFolder:
 
 
 class Callisto:
-    """Class `Callisto` controls the operation of spectrometer in manual
-       mode via command line and tcp connection.
+    """Representa um objeto Callisto espéctrôpmetro e implementa todos os métodos necessários para garantir sua operação.
+
+    Args:
+        IP (str): Endereço `IP` da máquina conectada ao Callisto. Defaults to None.
+        PORT (int): Número da `PORT` para conexão TCP. Defaults to 6789.
+        fits_command (str): descrição do comando utilizado pelo binário calllisto para modo de medida FIT. Defaults to "start".
+        ovs_command (str): descrição do comando utilizado pelo binário para realizar medida em modo overview. Defaults to "overview".
+        stop_command (str): descrição do comando utilizado pelo binário para parar a observação. Defaults to "stop".
+        quit_command (str): descrição do comando utilizado pelo binário para desconectar da porta TCP. Defaults to "quit".
+        daemon (str): nome do serviço `systemd`. Defaults to "callisto.service".
+        executable (str): nome do binário controlador. Defaults to "callisto".
+        cal_unit (CalibrationUnit): objeto callisto.CallibrationUnit representando a unidade de calibração e os métodos necessários para operá-la. Defaults to None.
     """
 
-    def __init__(self, IP=None, PORT=6789, fits_command="start",
-                 ovs_command="overview", stop_command="stop",
-                 quit_command="quit", daemon="callisto.service",
-                 executable="callisto", cal_unit=None):
+    def __init__(self, IP: str=None, PORT: int=6789, fits_command: str="start",
+                 ovs_command: str="overview", stop_command: str="stop",
+                 quit_command: str="quit", daemon: str="callisto.service",
+                 executable: str="callisto", cal_unit: str=None):
         self.IP = IP
         self.PORT = PORT
         self.fits_command = fits_command
@@ -135,7 +191,7 @@ class Callisto:
         self.data_folder = "/opt/callisto/data"
 
     def get_ip(self):
-        """Retrieve local IP."""
+        """Obtem IP da máquina local ao tentar realizar uma conexão com `socket`. Se resultado não é bem sucedido retorna o IP padrão do localhost 127.0.0.1."""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(0)
         try:
@@ -150,8 +206,10 @@ class Callisto:
         return self.IP
 
     def get_PID(self):
-        """Determine PID of callisto process running as daemon and return a
-        list with IPs of an empty list. Uses system `ps`.
+        """Determina o número dos processos callisto rodando na máquina local, emulando o comportamento de `ps aux |grep callisto`.
+
+        Returns:
+            list: lista contendo números dos procesos ou lista vazia se nenhum processo encontrado.
         """
         command = "ps aux"
         process_name = "callisto"
@@ -162,7 +220,12 @@ class Callisto:
         PID = df_ps[df_ps[10].str.contains(process_name)][1].values.tolist()
         return PID
 
-    def is_running(self, timeout=5):
+    def is_running(self, timeout: float=5):
+        """Cria loop bloqueando execução enquanto callisto estiver rodando.
+
+        Args:
+            timeout (float): tempo máximo em secundos para aguardar execução do programa. Defaults to 5.
+        """
         time_start = time.perf_counter()
         while self.get_PID():
             result = True
@@ -172,19 +235,28 @@ class Callisto:
         result = False
         return
 
-    def run_daemon(self, manager="sudo /bin/systemctl", action="start"):
-        """Start callisto daemon."""
+
+    def run_daemon(self, manager: str="sudo /bin/systemctl", action: str="start"):
+        """Roda o serviço systemd com a ação especificada no argument.
+
+        A execução do programa é realizada em thread separada e colocada em background, sobrevivendo a execução do script.
+
+        Args:
+            manager (str): caminho completo to controlador do daemon. Defaults to "sudo /bin/systemctl".
+            action (str): Ação a ser executada, dentre as opções disponíveis em processos daemon: (start|stop|reload). Defaults to "start".
+        """
         command = manager + " " + action + " " + self.daemon
         run_detached(command)
         return
 
     def stop(self):
-        """Stop every instance of callisto program running. First stops de systemd service, that aggresively kills all remaining processess. Needs sudoer rules inplace."""
+        """Para o daemon callisto se este estiver rodando e envia SIGTERM para todas as instâncias do binário que estiverem rodando. Funciona apenas se regras sudoer adequadas tiverem sido implementadas para o comando `sudo pkill callisto`."""
         # Stop daemon
         self.run_daemon(action="stop")
         # Check any stray processes.
         PIDs = self.get_PID()
         try:
+            # Try to kill and wait for killing to finish before proceed.
             job1 = multiprocessing.Process(target=self.is_running)
             job1.start()
             job2 = run_detached("pkill callisto")
@@ -195,8 +267,12 @@ class Callisto:
             pass
         return
 
-    def run(self, mode):
-        """Run a manual measurement with callisto in the `mode` determined in the argument. Appropriate config files should be present."""
+    def run(self, mode: str):
+        """Operação manual do espectrômetro callisto no modo epecificado no argumento.
+
+        Para qualquer processo que estiver rodando, inicia novo processo com arquivo de configuração adequado ao modo (SKY|COLD|WARM|HOT) mas não executa nenhuma ação adicional, deixando sistema pronto para iniciar medida.
+
+        Utiliza função `run_command`para executyar comando shell e retorna STDOUT, STDERR."""
         # This is a manual run that load a config file, need to first stop all running processes.
         self.stop()
         command = self.executable + " --config /etc/callisto/callisto_" + str(mode) + ".cfg"

@@ -40,38 +40,48 @@ Instalação
 Uso em linha de comando
 =======================
 
-.. highlight:: bash
+- Calibração em todos os modos (**COLD**, **WARM**, **HOT**), com gravação de spectral overview e de arquivo FIT para cada modo:
 
-- Calibração em todos os modos, com gravação de spectral overview e de arquivo FIT:::
+.. code-block:: console
 
-     python callisto.py
+     $ python callisto.py
 
 - Parada de qualquer serviço ou programa callisto em funcionamento com cancelamento de gravação de arquivos em andamento:
 
+.. code-block:: console
+
+     $ python callisto.py --action stop
+     $ python callisto.py -a stop
+
+- Iniciando servico `systemd`:
+
+.. code-block:: console
+
+     $ python callisto.py --action start-service
+     $ python callisto.py -a start-service
+
+- Fazendo uma medição spectral overview:
+
+.. code-block:: console
+
+     $ python callisto.py --action overview --mode HOT
+     $ python callisto.py -a overview -m WARM
+
+- Fazendo uma medição FIT:
+
+.. code-block:: console
+
+     $ python callisto.py --action start --mode SKY
+     $ python callisto.py -a start -m COLD
 
 
-Classes e Métodos
-=================
+Documentação do Módulo
+======================
 
-Callisto
-========
+.. automodule:: callisto
+    :members:
+    :private-members:
 
-.. autoclass:: callisto.Callisto
-   :members:
-   :private-members:
-   :special-members:
-
-CalibrationUnit
-===============
-
-.. autoclass:: callisto.CalibrationUnit
-   :members:
-   :private-members:
-   :special-members:
-
-
-Funções de Módulo Auxiliares
-============================
 
 Diagrama de Relações Entre Métodos e Classes
 ============================================
