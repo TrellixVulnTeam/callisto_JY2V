@@ -1,0 +1,5 @@
+env/
+.ipynb*/
+__py*/
+data/
+docs/working.ipynb

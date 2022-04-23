@@ -1,0 +1,15 @@
+[Unit]
+Description=callisto daemon
+
+[Service]
+User = callisto
+Group = callisto
+WorkingDirectory = /usr/sbin/
+ExecStart = /bin/sh -c '/usr/sbin/callisto --config /etc/callisto/callisto.cfg'
+Type = forking
+TimeoutStopSec = 20
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

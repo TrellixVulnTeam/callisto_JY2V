@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="pt-br" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentação Callisto Linux! &mdash; Callisto Linux 2022 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> Callisto Linux
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Documentação Callisto Linux!</a></li>
+<li><a class="reference internal" href="#visao-geral">Visão Geral</a></li>
+<li><a class="reference internal" href="#instalacao">Instalação</a></li>
+<li><a class="reference internal" href="#uso-em-linha-de-comando">Uso em linha de comando</a></li>
+<li><a class="reference internal" href="#uso">Uso</a></li>
+<li><a class="reference internal" href="#module-callisto">Documentação do Módulo</a></li>
+<li><a class="reference internal" href="#diagrama-de-relacoes-entre-metodos-e-classes">Diagrama de Relações Entre Métodos e Classes</a></li>
+<li><a class="reference internal" href="#descricao-dos-arquivos">Descrição dos Arquivos</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Callisto Linux</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>Documentação Callisto Linux!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="documentacao-callisto-linux">
+<h1>Documentação Callisto Linux!<a class="headerlink" href="#documentacao-callisto-linux" title="Permalink to this headline"></a></h1>
+</section>
+<section id="visao-geral">
+<h1>Visão Geral<a class="headerlink" href="#visao-geral" title="Permalink to this headline"></a></h1>
+<p>O espectrômetro Callisto &lt;<a class="reference external" href="http://e-callisto.org">http://e-callisto.org</a>&gt; é um receptor heteródino de baixo custo, desenvolvido na ETH Zurich em 2006 comvistas ao estudo da atividade solar na frequência de 60 - 860 MHz.</p>
+<p>Callisto pode ser acoplado a uma unidade de calibração, com relays controlados por um arduino uno.</p>
+<p>A introdução de osciladores pode fazer com que a frequência original de operação do Callisto seja alterada. Para o radiotelescópio BINGO um oscilador LO 1760MHz foi utilizado para obter uma saída <cite>IF = LO - RF</cite> na faixa de 900 a 1700 MHz.</p>
+<p>Callisto vem equipado com um programa para o controle do espectrômetro e um programa para controle da unidade de calibração, ambos na forma de binários para windows.</p>
+<p>O programa de controle do espectrômetro tem uma versão para sistemas Linux, em particular um pacote <cite>deb</cite> para instalação em instalações da família Debian/Ubuntu/Raspian.</p>
+<p>Este pacote fornece operações em uma camada de controle deste binário juntamente com a agregação de controles para a unidade de calibração.</p>
+<p>O espectrômetro callisto se conecta a um computador controlador pela USB.</p>
+<p>A unidade de calibração é controlada por um arduino que se conecta com um computador controlador pela porta serial ou por meio de um adaptador serial/USB.</p>
+<p>O binário <cite>callisto</cite> controla o espectrômetro e interage via protocolo <cite>TCP</cite>.</p>
+<p>O programa <cite>callisto.py</cite> controla o binário callisto e a unidade de calibração, por meio dos protocolos serial e tcp.</p>
+<p>Um serviço systemd <cite>callisto.service</cite> e trabalhos do crontab automatizam as operações destes dois programas e sua sinergia.</p>
+<p>O diagrama geral das relações entre os sistemas é conforme indicado na figura:</p>
+<a class="reference internal image-reference" href="_images/callisto_diagram.png"><img alt="Diagrama de Relações" src="_images/callisto_diagram.png" style="width: 800px;" /></a>
+</section>
+<section id="instalacao">
+<h1>Instalação<a class="headerlink" href="#instalacao" title="Permalink to this headline"></a></h1>
+<p>Verifique previamente os endereços das portas USB do callisto e da unidade de calibração. Em sistemas Linux, usualmente, o arduino se reportará como uma porta <cite>/dev/ttyACM?</cite> e a porta USB do callisto deve ser <cite>/dev/ttyUSB?</cite>. Os padrões dos arquivos de configuração são para as portas com número 0. Se necessário, altere <strong>em todos os arquivos de configuração</strong> <cite>callisto_MODE.cfg</cite> o valor correto para o dispositivo.</p>
+<p>É recomendável verificar linha por linha o script de instalação e executar as operações individualmente. Se você estiver superconfiante, faça <cite>sudo ./install.sh</cite>, mas você foi avisado.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git clone https://github.com/lbarosi/callisto.git
+<span class="gp">$ </span><span class="nb">cd</span> callisto
+<span class="gp">$ </span>sudo python -m pip install -r requirements.txt
+<span class="gp">$ </span><span class="c1"># sudo ./install.sh</span>
+</pre></div>
+</div>
+</section>
+<section id="uso-em-linha-de-comando">
+<h1>Uso em linha de comando<a class="headerlink" href="#uso-em-linha-de-comando" title="Permalink to this headline"></a></h1>
+<ul class="simple">
+<li><p>Calibração em todos os modos (<strong>COLD</strong>, <strong>WARM</strong>, <strong>HOT</strong>), com gravação de spectral overview e de arquivo FIT para cada modo:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python callisto.py
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Parada de qualquer serviço ou programa callisto em funcionamento com cancelamento de gravação de arquivos em andamento:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python callisto.py --action stop
+<span class="gp">$ </span>python callisto.py -a stop
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Iniciando servico <cite>systemd</cite>:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python callisto.py --action start-service
+<span class="gp">$ </span>python callisto.py -a start-service
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Fazendo uma medição spectral overview:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python callisto.py --action overview --mode HOT
+<span class="gp">$ </span>python callisto.py -a overview -m WARM
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Fazendo uma medição FIT:</p></li>
+</ul>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python callisto.py --action start --mode SKY
+<span class="gp">$ </span>python callisto.py -a start -m COLD
+</pre></div>
+</div>
+</section>
+<section id="uso">
+<h1>Uso<a class="headerlink" href="#uso" title="Permalink to this headline"></a></h1>
+<ol class="arabic simple">
+<li><p>Crie uma instância de Unidade de Calibraração e uma instância de Callisto para operar, passando a informação da unidade de calibração para a classe callisto.</p></li>
+</ol>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">callisto</span>
+<span class="n">cal_unit</span> <span class="o">=</span> <span class="n">callisto</span><span class="o">.</span><span class="n">CalibrationUnit</span><span class="p">(</span><span class="n">tty</span><span class="o">=</span><span class="s2">&quot;/dev/ttyACM0&quot;</span><span class="p">)</span>
+<span class="n">Callisto</span> <span class="o">=</span> <span class="n">callisto</span><span class="o">.</span><span class="n">Callisto</span><span class="p">(</span><span class="n">cal_unit</span><span class="o">=</span><span class="n">cal_unit</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Fazendo um Spectral Overview:</p></li>
+</ol>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Callisto</span><span class="o">.</span><span class="n">record_ovs</span><span class="p">(</span><span class="s2">&quot;COLD&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><dl class="simple">
+<dt>Medição manual FIT:</dt><dd><p>Os parâmetros para a medida em um arquivo FIT são definidos no arquivo de configuração que estiver carregado junto ao binário <cite>callisto</cite>. Tipicamente, a medição durará 15 minutos e será realizada em acordo com o arquivo de frequências padrão. Se nada foi alterado, isto significa que serão realizadas medidas em 400 canais, 2 vezes por segundo. Veja a documentação do espectrômetro callisto para mais detalhes.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Callisto</span><span class="o">.</span><span class="n">record_fits</span><span class="p">(</span><span class="s2">&quot;SKY&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic" start="4">
+<li><p>Vizualização rápida dos dados:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>OVS</p></li>
+</ol>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/opt/callisto/Ovs/NOMEDOARQUIVO.prn&quot;</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Frequency[MHz]&quot;</span><span class="p">,</span> <span class="s2">&quot;S[mV]&quot;</span><span class="p">]</span>
+<span class="n">LO</span> <span class="o">=</span> <span class="mi">1760</span> <span class="c1">#oscilador local para BINGO</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;Frequency[MHz]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LO</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Frequency[MHz]&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="s2">&quot;Frequency[MHz]&quot;</span><span class="p">,</span> <span class="s2">&quot;S[mV]&quot;</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">();</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>FIT</p></li>
+</ol>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">astropy.io</span> <span class="kn">import</span> <span class="n">fits</span>
+<span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/opt/callisto/data/NOMEDOARQUIVO.fit&quot;</span>
+<span class="n">hdul</span> <span class="o">=</span> <span class="n">fits_open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">hdul</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">16</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">();</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ol>
+</section>
+<section id="module-callisto">
+<span id="documentacao-do-modulo"></span><h1>Documentação do Módulo<a class="headerlink" href="#module-callisto" title="Permalink to this headline"></a></h1>
+<p>Pacote de controle do espectrômetro Callisto e de sua unidade de calibração em sistemas tipo Linux. Depende do binário callisto da distribuição Linux e utiliza conexão TCP e conexão serial.</p>
+<p>&#64;Author: Luciano Barosi
+&#64;Date: 15.04.2022
+&#64;Links: <a class="reference external" href="https://github.com/lbarosi/callisto">https://github.com/lbarosi/callisto</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="callisto.CalibrationUnit">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">CalibrationUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/dev/ttyACM0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9600</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bytesize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'N'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopbits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Version:</span> <span class="pre">ETHZ</span> <span class="pre">Arduino_PrototypeV85.ino;</span> <span class="pre">2016-08-17/cm'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.CalibrationUnit" title="Permalink to this definition"></a></dt>
+<dd><p>Controla o arduino da unidade de calibração do callisto via porta serial. Os parâmetros são muito customizáveis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tty</strong> (<em>str</em>) – dispositivo serial do sistema. Defaults to “/dev/ttyACM0”.</p></li>
+<li><p><strong>baudrate</strong> (<em>int</em>) – Defaults to 9600.</p></li>
+<li><p><strong>bytesize</strong> (<em>type</em>) – Defaults to serial.EIGHTBITS.</p></li>
+<li><p><strong>parity</strong> (<em>type</em>) – Defaults to serial.PARITY_NONE.</p></li>
+<li><p><strong>stopbits</strong> (<em>type</em>) – Defaults to serial.STOPBITS_ONE.</p></li>
+<li><p><strong>timeout</strong> (<em>int</em>) – tempo de resposta do arduino. Defaults to 1.</p></li>
+<li><p><strong>version</strong> (<em>str</em>) – string que representa versã do arduino para verificar se programa esta falando com arduino correro. Defaults to I_AM_ARDUINO.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.CalibrationUnit.check">
+<span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.CalibrationUnit.check" title="Permalink to this definition"></a></dt>
+<dd><p>Verifica se dispositivo responde a informação de sua versão corretamente.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.CalibrationUnit.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.CalibrationUnit.connect" title="Permalink to this definition"></a></dt>
+<dd><p>Inicia conexão serial.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.CalibrationUnit.listen">
+<span class="sig-name descname"><span class="pre">listen</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.CalibrationUnit.listen" title="Permalink to this definition"></a></dt>
+<dd><p>Ouve resposta da porta serial.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.CalibrationUnit.send_command">
+<span class="sig-name descname"><span class="pre">send_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.CalibrationUnit.send_command" title="Permalink to this definition"></a></dt>
+<dd><p>Envia comando para a porta serial e acompanha sua execução e código de resposta.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.CalibrationUnit.set_relay">
+<span class="sig-name descname"><span class="pre">set_relay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.CalibrationUnit.set_relay" title="Permalink to this definition"></a></dt>
+<dd><p>Define estado do relay SKY|COLD|WARM|HOT</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="callisto.Callisto">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">Callisto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">IP</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PORT</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6789</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fits_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'start'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ovs_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'overview'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'stop'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quit_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'quit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daemon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'callisto.service'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">executable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'callisto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cal_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto" title="Permalink to this definition"></a></dt>
+<dd><p>Representa um objeto Callisto espéctrôpmetro e implementa todos os métodos necessários para garantir sua operação.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>IP</strong> (<em>str</em>) – Endereço <cite>IP</cite> da máquina conectada ao Callisto. Defaults to None.</p></li>
+<li><p><strong>PORT</strong> (<em>int</em>) – Número da <cite>PORT</cite> para conexão TCP. Defaults to 6789.</p></li>
+<li><p><strong>fits_command</strong> (<em>str</em>) – descrição do comando utilizado pelo binário calllisto para modo de medida FIT. Defaults to “start”.</p></li>
+<li><p><strong>ovs_command</strong> (<em>str</em>) – descrição do comando utilizado pelo binário para realizar medida em modo overview. Defaults to “overview”.</p></li>
+<li><p><strong>stop_command</strong> (<em>str</em>) – descrição do comando utilizado pelo binário para parar a observação. Defaults to “stop”.</p></li>
+<li><p><strong>quit_command</strong> (<em>str</em>) – descrição do comando utilizado pelo binário para desconectar da porta TCP. Defaults to “quit”.</p></li>
+<li><p><strong>daemon</strong> (<em>str</em>) – nome do serviço <cite>systemd</cite>. Defaults to “callisto.service”.</p></li>
+<li><p><strong>executable</strong> (<em>str</em>) – nome do binário controlador. Defaults to “callisto”.</p></li>
+<li><p><strong>cal_unit</strong> (<a class="reference internal" href="#callisto.CalibrationUnit" title="callisto.CalibrationUnit"><em>CalibrationUnit</em></a>) – objeto callisto.CallibrationUnit representando a unidade de calibração e os métodos necessários para operá-la. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto._calibrate">
+<span class="sig-name descname"><span class="pre">_calibrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto._calibrate" title="Permalink to this definition"></a></dt>
+<dd><p>Método privado realiza operações necessárias para calibração para cada módulo separadamente.</p>
+<p>Inicia binário, carrega configurações do modo, faz observação em modo overview e observação em modo FIT.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mode</strong> (<em>str</em>) – (SKY|COLD|WARM|HOT).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.calibrate">
+<span class="sig-name descname"><span class="pre">calibrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.calibrate" title="Permalink to this definition"></a></dt>
+<dd><p>Realiza calibração completa com os modos de operação COLD, WARM e HOT, salvando PRN e FIT nos diretórios especificados nos atributos da classe.</p>
+<p>Ao terminar a calibração inicia o daemon de sistema.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">socket.socket</span></span></span><a class="headerlink" href="#callisto.Callisto.connect" title="Permalink to this definition"></a></dt>
+<dd><p>Cria socket para conexão TCP com o binário callisto.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>timeout</strong> (<em>float</em>) – tempo padrão para aguardar resposta, em segundos. Defaults to 2.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Socket para comunicação aberto.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>socket.socket</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.do">
+<span class="sig-name descname"><span class="pre">do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.do" title="Permalink to this definition"></a></dt>
+<dd><p>Envia comando via TCP para o binário callisto se este estiver rodando.</p>
+<p>Seve ser utilizado após o comando <cite>run</cite> que de fato inicia o binário e carrega arquivo de configuração apropriado.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – comando TCP a ser enviado. Opções válidas: (start|stop|quit|overview).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.get_PID">
+<span class="sig-name descname"><span class="pre">get_PID</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.get_PID" title="Permalink to this definition"></a></dt>
+<dd><p>Determina o número dos processos callisto rodando na máquina local, emulando o comportamento de <cite>ps aux |grep callisto</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>lista contendo números dos procesos ou lista vazia se nenhum processo encontrado.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.get_ip">
+<span class="sig-name descname"><span class="pre">get_ip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.get_ip" title="Permalink to this definition"></a></dt>
+<dd><p>Obtem IP da máquina local ao tentar realizar uma conexão com <cite>socket</cite>. Se resultado não é bem sucedido retorna o IP padrão do localhost 127.0.0.1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.is_running">
+<span class="sig-name descname"><span class="pre">is_running</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.is_running" title="Permalink to this definition"></a></dt>
+<dd><p>Cria loop bloqueando execução enquanto callisto estiver rodando.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>timeout</strong> (<em>float</em>) – tempo máximo em secundos para aguardar execução do programa. Defaults to 5.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.record_fits">
+<span class="sig-name descname"><span class="pre">record_fits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.record_fits" title="Permalink to this definition"></a></dt>
+<dd><p>Realiza medida manual única, tipo FIT no modo especificado e vigia sistema de arquivos para verificar sucesso.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em>) – modo válido para os relays da unidade calibradora (SKY|COLD|WARM|HOT).</p></li>
+<li><p><strong>time</strong> (<em>float</em>) – tempo para esperar a criação de um arquivo PRN no caminho padrão da classe. Defaults to 1200.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.record_ovs">
+<span class="sig-name descname"><span class="pre">record_ovs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">180</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.record_ovs" title="Permalink to this definition"></a></dt>
+<dd><p>Realiza medida manual única, tipo spectral overview no modo especificado e vigia sistema de arquivos para verificar sucesso.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em>) – modo válido para os relays da unidade calibradora (SKY|COLD|WARM|HOT).</p></li>
+<li><p><strong>time</strong> (<em>float</em>) – tempo para esperar a criação de um arquivo PRN no caminho padrão da classe. Defaults to 180.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.run" title="Permalink to this definition"></a></dt>
+<dd><p>Operação manual do espectrômetro callisto no modo epecificado no argumento.</p>
+<p>Para qualquer processo que estiver rodando, inicia novo processo com arquivo de configuração adequado ao modo (SKY|COLD|WARM|HOT) mas não executa nenhuma ação adicional, deixando sistema pronto para iniciar medida.</p>
+<p>Utiliza função <cite>run_command</cite> para executyar comando shell e retorna STDOUT, STDERR.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.run_daemon">
+<span class="sig-name descname"><span class="pre">run_daemon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'sudo</span> <span class="pre">/bin/systemctl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'start'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.run_daemon" title="Permalink to this definition"></a></dt>
+<dd><p>Roda o serviço systemd com a ação especificada no argument.</p>
+<p>A execução do programa é realizada em thread separada e colocada em background, sobrevivendo a execução do script.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>manager</strong> (<em>str</em>) – caminho completo to controlador do daemon. Defaults to “sudo /bin/systemctl”.</p></li>
+<li><p><strong>action</strong> (<em>str</em>) – Ação a ser executada, dentre as opções disponíveis em processos daemon: (start|stop|reload). Defaults to “start”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Callisto.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Callisto.stop" title="Permalink to this definition"></a></dt>
+<dd><p>Para o daemon callisto se este estiver rodando e envia SIGTERM para todas as instâncias do binário que estiverem rodando. Funciona apenas se regras sudoer adequadas tiverem sido implementadas para o comando <cite>sudo pkill callisto</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="callisto.Handler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">Handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Handler" title="Permalink to this definition"></a></dt>
+<dd><p>Implementa o gerenciador de eventos de arquivos utilizado em conjunto com o file watchdog.</p>
+<p>Para o módulo callisto só é necessário implementar o método que lida com a criação de arquivos, encarregada de acompanhar a execução das operações do binário callisto e permitir a verificação do sucesso das operações.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pattern</strong> (<em>str</em>) – máscara para observar os arquivos <cite>pattern</cite>. Padrão é  None.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="callisto.Handler.created">
+<span class="sig-name descname"><span class="pre">created</span></span><a class="headerlink" href="#callisto.Handler.created" title="Permalink to this definition"></a></dt>
+<dd><p>determina se arquivo satisfazendo a máscara foi ou não criado.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.Handler.on_created">
+<span class="sig-name descname"><span class="pre">on_created</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.Handler.on_created" title="Permalink to this definition"></a></dt>
+<dd><p>Chamada quando um arquivo satisfazendo a máscara é criado.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>DirCreatedEvent</em><em> or </em><em>FileCreatedEvent</em>) – Evento representando a criação de arquivo ou diretório.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="callisto.WatchFolder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">WatchFolder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#callisto.WatchFolder" title="Permalink to this definition"></a></dt>
+<dd><p>Monitoramento contínuo de eventos de arquivos e diretórios baseado no pacote <cite>watchdog</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – caminho completo onde observar os arquivos. Defaults to None.</p></li>
+<li><p><strong>recursive</strong> (<em>bool</em>) – Defaults to False.</p></li>
+<li><p><strong>pattern</strong> (<em>str</em>) – máscara para vigiar arquivos. Defaults to None.</p></li>
+<li><p><strong>timeout</strong> (<em>float</em>) – <cite>timeout</cite> em segundos para manter vigiando o caminho indicado. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="callisto.WatchFolder.observer">
+<span class="sig-name descname"><span class="pre">observer</span></span><a class="headerlink" href="#callisto.WatchFolder.observer" title="Permalink to this definition"></a></dt>
+<dd><p><cite>observer</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>watchdog.observers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="callisto.WatchFolder.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.WatchFolder.run" title="Permalink to this definition"></a></dt>
+<dd><p>Inicia observação do caminho indicado.</p>
+<p>Vigia a alteração (criação, modificação, deleção de arquivos ou diretórios) e manipula conforme o <cite>handler</cite> o evento que ocorreu.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="callisto.main">
+<span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callisto.main" title="Permalink to this definition"></a></dt>
+<dd><p>Roda programa principal do módulo.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="callisto.run_command">
+<span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">run_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#callisto.run_command" title="Permalink to this definition"></a></dt>
+<dd><p>Executa comando shell passado como argumento utilizando biblioteca <cite>subprocess</cite>.</p>
+<p>Função reporta erro no arquivo de log se houver algum erro que não represente a informação do binário callisto de que não detectou o arquivo scheduler, uma vez que este não é um erro e apenas uma informação do status desejado.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – string de comando escrita da mesma forma que se escreveria em linha de comando.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>saída padrão e código de erro informado para o comando executado.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple[str, str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="callisto.run_detached">
+<span class="sig-prename descclassname"><span class="pre">callisto.</span></span><span class="sig-name descname"><span class="pre">run_detached</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">multiprocessing.context.Process</span></span></span><a class="headerlink" href="#callisto.run_detached" title="Permalink to this definition"></a></dt>
+<dd><p>Roda o comando indicado em modo background, liberando a execução do resto do programa.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>command</strong> (<em>str</em>) – string de comando escrita da mesma forma que se escreveria em linha de comando.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>processo em execução.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>multiprocessing.Process</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="diagrama-de-relacoes-entre-metodos-e-classes">
+<h1>Diagrama de Relações Entre Métodos e Classes<a class="headerlink" href="#diagrama-de-relacoes-entre-metodos-e-classes" title="Permalink to this headline"></a></h1>
+<a class="reference internal image-reference" href="_images/callistoDiagram.png"><img alt="Diagrama de Relações" src="_images/callistoDiagram.png" style="width: 800px;" /></a>
+</section>
+<section id="descricao-dos-arquivos">
+<h1>Descrição dos Arquivos<a class="headerlink" href="#descricao-dos-arquivos" title="Permalink to this headline"></a></h1>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Luciano Barosi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
