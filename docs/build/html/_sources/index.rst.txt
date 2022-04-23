@@ -37,6 +37,19 @@ O diagrama geral das relações entre os sistemas é conforme indicado na figura
 Instalação
 ==========
 
+Verifique previamente os endereços das portas USB do callisto e da unidade de calibração. Em sistemas Linux, usualmente, o arduino se reportará como uma porta `/dev/ttyACM?` e a porta USB do callisto deve ser `/dev/ttyUSB?`. Os padrões dos arquivos de configuração são para as portas com número 0. Se necessário, altere **em todos os arquivos de configuração** `callisto_MODE.cfg` o valor correto para o dispositivo.
+
+É recomendável verificar linha por linha o script de instalação e executar as operações individualmente. Se você estiver superconfiante, faça `sudo ./install.sh`, mas você foi avisado.
+
+.. code-block:: console
+
+     $ git clone https://github.com/lbarosi/callisto.git
+     $ cd callisto
+     $ sudo python -m pip install -r requirements.txt
+     $ # sudo ./install.sh
+
+
+
 Uso em linha de comando
 =======================
 
@@ -74,6 +87,63 @@ Uso em linha de comando
      $ python callisto.py --action start --mode SKY
      $ python callisto.py -a start -m COLD
 
+Uso
+===
+
+1. Crie uma instância de Unidade de Calibraração e uma instância de Callisto para operar, passando a informação da unidade de calibração para a classe callisto.
+
+.. code-block:: python3
+
+     import callisto
+     cal_unit = callisto.CalibrationUnit(tty="/dev/ttyACM0")
+     Callisto = callisto.Callisto(cal_unit=cal_unit)
+
+2. Fazendo um Spectral Overview:
+
+.. code-block:: python3
+
+     Callisto.record_ovs("COLD")
+
+3. Medição manual FIT:
+     Os parâmetros para a medida em um arquivo FIT são definidos no arquivo de configuração que estiver carregado junto ao binário `callisto`. Tipicamente, a medição durará 15 minutos e será realizada em acordo com o arquivo de frequências padrão. Se nada foi alterado, isto significa que serão realizadas medidas em 400 canais, 2 vezes por segundo. Veja a documentação do espectrômetro callisto para mais detalhes.
+
+.. code-block:: python3
+
+     Callisto.record_fits("SKY")
+
+4. Vizualização rápida dos dados:
+
+     1. OVS
+
+     .. code-block:: python3
+
+          import pandas as pd
+          import matplotlib.pyplot as plt
+          path = "/opt/callisto/Ovs/NOMEDOARQUIVO.prn"
+          df = pd.read_table(path, sep=".")
+          df.columns = ["Frequency[MHz]", "S[mV]"]
+          LO = 1760 #oscilador local para BINGO
+          df["Frequency[MHz]"] = LO - df["Frequency[MHz]"]
+
+     .. code-block:: python3
+
+          fig, ax = plt.subplots(figsize = (16,6))
+          df.plot("Frequency[MHz]", "S[mV]", ax = ax)
+          plt.show();
+
+     2. FIT
+
+     .. code-block:: python3
+
+          import pandas as pd
+          from astropy.io import fits
+          path = "/opt/callisto/data/NOMEDOARQUIVO.fit"
+          hdul = fits_open(path)
+          df = pd.DataFrame(hdul)
+          fig, ax = plt.subplots(figsize = (16,6))
+          plt.imshow(df)
+          plt.show();
+
 
 Documentação do Módulo
 ======================
@@ -85,6 +155,11 @@ Documentação do Módulo
 
 Diagrama de Relações Entre Métodos e Classes
 ============================================
+
+.. image:: ./callistoDiagram.png
+  :width: 800
+  :alt: Diagrama de Relações
+
 
 Descrição dos Arquivos
 ======================

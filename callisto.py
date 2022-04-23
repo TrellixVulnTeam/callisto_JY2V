@@ -272,7 +272,8 @@ class Callisto:
 
         Para qualquer processo que estiver rodando, inicia novo processo com arquivo de configuração adequado ao modo (SKY|COLD|WARM|HOT) mas não executa nenhuma ação adicional, deixando sistema pronto para iniciar medida.
 
-        Utiliza função `run_command`para executyar comando shell e retorna STDOUT, STDERR."""
+        Utiliza função `run_command` para executyar comando shell e retorna STDOUT, STDERR.
+        """
         # This is a manual run that load a config file, need to first stop all running processes.
         self.stop()
         command = self.executable + " --config /etc/callisto/callisto_" + str(mode) + ".cfg"
@@ -286,8 +287,16 @@ class Callisto:
                 logger.error("Device report that it is not Callisto. Aborting.")
         return response, error
 
-    def connect(self, timeout=2):
-        """Create socket for TCP connection with callisto software."""
+    def connect(self, timeout:float=2) -> socket.socket:
+        """Cria socket para conexão TCP com o binário callisto.
+
+        Args:
+            timeout (float): tempo padrão para aguardar resposta, em segundos. Defaults to 2.
+
+        Returns:
+            socket.socket: Socket para comunicação aberto.
+
+        """
         if not self.IP:
             self.get_ip()
         start_time = time.perf_counter()
@@ -308,8 +317,14 @@ class Callisto:
             pass
         return sock
 
-    def do(self, command=None):
-        """Open tcp socket to control callisto program."""
+    def do(self, command: str=None):
+        """Envia comando via TCP para o binário callisto se este estiver rodando.
+
+        Seve ser utilizado após o comando `run` que de fato inicia o binário e carrega arquivo de configuração apropriado.
+
+        Args:
+            command (str): comando TCP a ser enviado. Opções válidas: (start|stop|quit|overview).
+        """
         if self.get_PID():
             try:
                 command = command + "\n"
@@ -322,8 +337,13 @@ class Callisto:
                 pass
         return
 
-    def record_ovs(self, mode, time=180):
-        """Run a single manual spectrum overview."""
+    def record_ovs(self, mode: str, time: float=180):
+        """Realiza medida manual única, tipo spectral overview no modo especificado e vigia sistema de arquivos para verificar sucesso.
+
+        Args:
+            mode (str): modo válido para os relays da unidade calibradora (SKY|COLD|WARM|HOT).
+            time (float): tempo para esperar a criação de um arquivo PRN no caminho padrão da classe. Defaults to 180.
+        """
         # Set control unit in correct mode.
         self.cal_unit.set_relay(mode)
         self.run(mode)
@@ -335,7 +355,12 @@ class Callisto:
         return
 
     def record_fits(self, mode, time=1200):
-        """Run a single manual fits measurement."""
+        """Realiza medida manual única, tipo FIT no modo especificado e vigia sistema de arquivos para verificar sucesso.
+
+        Args:
+            mode (str): modo válido para os relays da unidade calibradora (SKY|COLD|WARM|HOT).
+            time (float): tempo para esperar a criação de um arquivo PRN no caminho padrão da classe. Defaults to 1200.
+        """
         # Set control unit in correct mode.
         self.cal_unit.set_relay(mode)
         self.run(mode)
@@ -346,8 +371,14 @@ class Callisto:
         self.do(self.stop_command)
         return
 
-    def _calibrate(self, mode):
-        """Measure for calibration in single mode of operation."""
+    def _calibrate(self, mode: str):
+        """Método privado realiza operações necessárias para calibração para cada módulo separadamente.
+
+        Inicia binário, carrega configurações do modo, faz observação em modo overview e observação em modo FIT.
+
+        Args:
+            mode (str): (SKY|COLD|WARM|HOT).
+        """
         # Run measurementes
         self.record_ovs(mode)
         self.record_fits(mode)
@@ -356,7 +387,9 @@ class Callisto:
         return
 
     def calibrate(self, timeout=1):
-        """Calibrate all modes."""
+        """Realiza calibração completa com os modos de operação COLD, WARM e HOT, salvando PRN e FIT nos diretórios especificados nos atributos da classe.
+
+        Ao terminar a calibração inicia o daemon de sistema."""
         start_time = time.perf_counter()
         while True:
             try:
@@ -382,10 +415,19 @@ class Callisto:
 # CLASS
 # ----------------------------
 class CalibrationUnit():
-    """Class `CalibrationUnit` controls the arduino which, in turn, controls the relay switched in the calibration unit of callisto spectrometer via serial port."""
+    """Controla o arduino da unidade de calibração do callisto via porta serial. Os parâmetros são muito customizáveis.
 
+    Args:
+        tty (str):dispositivo serial do sistema. Defaults to "/dev/ttyACM0".
+        baudrate (int): Defaults to 9600.
+        bytesize (type): Defaults to serial.EIGHTBITS.
+        parity (type): Defaults to serial.PARITY_NONE.
+        stopbits (type): Defaults to serial.STOPBITS_ONE.
+        timeout (int): tempo de resposta do arduino. Defaults to 1.
+        version (str): string que representa versã do arduino para verificar se programa esta falando com arduino correro. Defaults to I_AM_ARDUINO.
+    """
 
-    def __init__(self, tty="/dev/ttyACM0", baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=1, version=I_AM_ARDUINO):
+    def __init__(self, tty: str="/dev/ttyACM0", baudrate: int=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout: int=1, version: str=I_AM_ARDUINO):
         """Construtor da classe de calibração. Todas as propriedades da porta serial podem ser configuradas. A única realmente fundamental é a port `tty`.
 
         Parameters
@@ -419,7 +461,7 @@ class CalibrationUnit():
         self._tty = tty
 
     def connect(self):
-        """Star serial connection with arduino in calibration unit."""
+        """Inicia conexão serial."""
         try:
             self.serial = serial.Serial(self.tty, self.baudrate, self.bytesize, self.parity, self.stopbits, timeout=1)
         except serial.SerialException as err:
@@ -428,6 +470,7 @@ class CalibrationUnit():
         return self
 
     def listen(self):
+        """Ouve resposta da porta serial."""
         response = self.serial.readlines()
         if isinstance(response, list):
             response = "".join([line.decode('UTF-8',errors='strict').strip() for line in response])
@@ -438,7 +481,7 @@ class CalibrationUnit():
         return response
 
     def check(self):
-        """Check if device in serial may respond as a Callisto Callibration Unit by checking the version of software being used."""
+        """Verifica se dispositivo responde a informação de sua versão corretamente."""
         try:
             response = self.send_command(b"V?\n")
             if self.version in response:
@@ -452,6 +495,7 @@ class CalibrationUnit():
         return result
 
     def send_command(self, command):
+        """Envia comando para a porta serial e acompanha sua execução e código de resposta."""
         response = None
         try:
             self.connect()
@@ -472,7 +516,7 @@ class CalibrationUnit():
 
 
     def set_relay(self, mode):
-        """Set relay state in calibration unit."""
+        """Define estado do relay SKY|COLD|WARM|HOT"""
         response = None
         if mode == "COLD":
             command = b"Tcold\n"
@@ -492,16 +536,51 @@ class CalibrationUnit():
 # MAIN
 # ----------------------------
 def main():
-
-    handler = logging.handlers.WatchedFileHandler(os.environ.get("LOGFILE", "/var/log/callisto.log"))
-    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    """Roda programa principal do módulo."""
+    handler = logging.FileHandler("/opt/callisto/log/callisto.log")
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
 
-    cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
-    callisto = Callisto(PORT=6789, cal_unit=cal_unit)
-    callisto.calibrate()
+    mod_parser = argparse.ArgumentParser(
+        description="Callisto.py controlador do espectrômetro Callisto."
+        )
+    mod_parser.add_argument(
+        "-a", "--action", type=str,
+        help="action to be taken: start|start-service|overview|stop"
+        )
+    mod_parser.add_argument(
+        "-m", "--mode", type=str,
+        help="mode: SKY|COLD|WARM|HOT"
+    )
+    valid_actions = ["start", "start-service", "overview", "stop"]
+    valid_modes = ["SKY", "COLD", "HOT", "WARM"]
+
+    args = mod_parser.parse_args()
+    action = args.action
+    mode = args.mode
+
+    if not action:
+        cal_unit = CalibrationUnit(tty="/dev/ttyACM0")
+        callisto = Callisto(PORT=6789, cal_unit=cal_unit)
+        callisto.calibrate()
+
+    if mode in valid_modes:
+        logger.info("Operação manual por linha de comando."
+                    "action = {} - mode = {}".format(action, mode))
+        print("Operação manual por linha de comando."
+                    "action = {} - mode = {}".format(action, mode))
+        Callisto.stop()
+        callisto.cal_unit.set_relay(mode)
+        if action == "start":
+            callisto.record_fits(mode)
+        elif action == "overview":
+            callisto.record_ovs(mode)
+        elif action == "start-service":
+            callisto.run_daemon(action="start")
+
 
 if __name__ == "__main__":
     main()
