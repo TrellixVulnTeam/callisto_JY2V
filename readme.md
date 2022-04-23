@@ -1,5 +1,12 @@
 # Running Callisto Spectrometer in Linux
 
+[![Documentation Status](https://readthedocs.org/projects/callistolinux/badge/?version=latest)](https://callistolinux.readthedocs.io/en/latest/?badge=latest)
+[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+[![made-with-sphinx-doc](https://img.shields.io/badge/Made%20with-Sphinx-1f425f.svg)](https://www.sphinx-doc.org/)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+
+
 Callisto spectrometer has packages to run with major linux distributions, including raspian. Nevertheless, Linux distribution lacks some important functionalities which are important to controll calibration unit.
 
 Since the callibration unit is controlled by an ARDUINO UNO whose serial port is available to external communication, it is possible to combine the funcionalities of the command line utility with some funcionalities to control the serial port.
