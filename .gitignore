@@ -1,3 +1,6 @@
+.gitignore
+*.egg*
+dist/
 env/
 env/*
 env/bin/
