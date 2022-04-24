@@ -1,4 +1,8 @@
 env/
+env/*
+env/bin/
+env/bin/*
+env/lib/
 .ipynb*/
 __py*/
 data/

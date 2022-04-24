@@ -1,6 +1,6 @@
+autodoc
 pandas
 pyserial
-watchdog
 sphinx
 sphinx-rtd-theme
-autodoc
+watchdog
