@@ -7,3 +7,4 @@ env/lib/
 __py*/
 data/
 docs/working.ipynb
+tests/
