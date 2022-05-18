@@ -1,6 +1,6 @@
 # Running Callisto Spectrometer in Linux
 
-[![Documentation Status](https://readthedocs.org/projects/callistolinux/badge/?version=latest)](https://callistolinux.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/callistolinux/badge/?version=latest)](https://callistolinux.readthedocs.io/)
 [![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![made-with-sphinx-doc](https://img.shields.io/badge/Made%20with-Sphinx-1f425f.svg)](https://www.sphinx-doc.org/)
